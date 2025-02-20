@@ -48,7 +48,12 @@
             </div>
             <div class="user-form-card">
               <div class="user-form-title">
-
+                <div class="user-form-avatar">
+                  <img
+                    alt="image-avatar"
+                    src="/static/assets/img/imageAvt.jpg"
+                  />
+                </div>
                 <h2>Đổi Mật Khẩu!</h2>
                 <p class="mb-5">
                   Thay đổi mật khẩu định kỳ để bảo vệ tài khoản của bạn.
@@ -181,7 +186,127 @@
                 </form>
               </div>
             </div>
-            <!-- ... -->
+
+            <!--Xử lý đổi mật khẩu-->
+            <script>
+              document
+                .getElementById("changePass-button")
+                .addEventListener("click", async function (event) {
+                  event.preventDefault(); // Ngăn chặn form reload lại trang
+                  hideErrorMessages();
+                  const userName = document.getElementById("userName").value;
+                  const currentPassword =
+                    document.getElementById("currentPassword").value;
+                  const newPassword =
+                    document.getElementById("newPassword").value;
+                  const confirmPassword =
+                    document.getElementById("confirmPassword").value;
+
+                  // Kiểm tra xem email có rỗng không
+                  if (!userName) {
+                    document.getElementById("userName-error").style.display =
+                      "block";
+                    return;
+                  }
+                  if (!currentPassword) {
+                    document.getElementById("curPassword-error").style.display =
+                      "block";
+                    return;
+                  }
+                  if (!newPassword) {
+                    document.getElementById("newPassword-error").style.display =
+                      "block";
+                    return;
+                  }
+                  if (!confirmPassword) {
+                    document.getElementById(
+                      "confirmPassword-error"
+                    ).style.display = "block";
+                    return;
+                  }
+
+                  // Ẩn thông báo lỗi trước đó (nếu có)
+                  function hideErrorMessages() {
+                    document.getElementById("userName-error").style.display =
+                      "none";
+                    document.getElementById("curPassword-error").style.display =
+                      "none";
+                    document.getElementById("newPassword-error").style.display =
+                      "none";
+                    document.getElementById(
+                      "confirmPassword-error"
+                    ).style.display = "none";
+                    document.getElementById(
+                      "newPassword-6char-error"
+                    ).style.display = "none";
+                    document.getElementById(
+                      "confirmPassword-not-error"
+                    ).style.display = "none";
+                    document.getElementById(
+                      "userName-pass-notfound-error"
+                    ).style.display = "none";
+                  }
+
+                  try {
+                    const response = await fetch(
+                      "http://localhost:9056/user-service/api/account/change-password",
+                      {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          userName: userName,
+                          currentPassword: currentPassword,
+                          newPassword: newPassword,
+                          confirmPassword: confirmPassword,
+                        }),
+                      }
+                    );
+
+                    if (response.ok) {
+                      // Hiển thị thông báo thành công
+                      document.getElementById(
+                        "changePass-success"
+                      ).style.display = "block";
+                    } else {
+                      // Nếu server trả về lỗi
+                      const errorData = await response.json();
+                      //document.getElementById('email_error').style.display = 'block';
+                      if (errorData.message === "UserName not found.") {
+                        document.getElementById(
+                          "userName-pass-notfound-error"
+                        ).style.display = "block";
+                      } else if (
+                        errorData.message === "Current password is incorrect."
+                      ) {
+                        document.getElementById(
+                          "userName-pass-notfound-error"
+                        ).style.display = "block";
+                      } else if (
+                        errorData.message ===
+                        "New password must be at least 6 characters long."
+                      ) {
+                        document.getElementById(
+                          "newPassword-6char-error"
+                        ).style.display = "block";
+                      } else if (
+                        errorData.message ===
+                        "New password and confirm password do not match."
+                      ) {
+                        document.getElementById(
+                          "confirmPassword-not-error"
+                        ).style.display = "block";
+                      }
+                    }
+                  } catch (error) {
+                    console.error(
+                      "Lỗi trong quá trình đặt lại mật khẩu:",
+                      error
+                    );
+                    alert("Đã có lỗi xảy ra. Vui lòng thử lại.");
+                  }
+                });
+            </script>
+
             <div class="user-form-remind">
               <p>
                 Bạn đã có tài khoản?<a href="/templates/web/login.html"
@@ -200,7 +325,17 @@
       </div>
     </section>
 
-    <!-- ... -->
+    <!-- Xử lý ẩn hiện mật khẩu -->
+    <script>
+      function hidePass() {
+        var x = document.getElementById("currentPassword");
+        if (x.type === "password") {
+          x.type = "text";
+        } else {
+          x.type = "password";
+        }
+      }
+    </script>
 
     <script src="vendor/bootstrap/jquery-1.12.4.min.js"></script>
     <script src="vendor/bootstrap/popper.min.js"></script>
