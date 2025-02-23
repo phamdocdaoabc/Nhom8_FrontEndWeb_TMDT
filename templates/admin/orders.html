@@ -202,7 +202,234 @@
 											<!--Hiển thị dữ liệu bảng-->
 										</tbody>
 									</table>
-																											<!-- end task -->
+									<div id="pagination" class="pagination" style="text-align: right;"></div>
+									<script>
+										document.addEventListener("DOMContentLoaded", () => {
+											loadOrders(0, 5); // Tải trang đầu tiên với 10 mục mỗi trang
+
+											// Thêm sự kiện khi tải trang
+											const tableBody = document.querySelector("tbody");
+
+											tableBody.addEventListener("change", (event) => {
+												if (event.target.tagName === "SELECT") {
+													handleStatusChange(event.target);
+												}
+											});
+
+											tableBody.addEventListener("click", (event) => {
+												if (event.target.matches(".btn-success")) {
+													confirmStatusUpdate(event.target);
+												} else if (event.target.matches(".btn-secondary")) {
+													cancelStatusUpdate(event.target);
+												}
+											});
+										});
+										const loadOrders = (page = 0, size = 5) => {
+											fetch(`http://localhost:9056/order-service/api/orders/order-admin?page=${page}&size=${size}`)
+												.then(response => response.json())
+												.then(data => {
+													const orders = data.content; // Danh sách đơn hàng
+													const pageInfo = {
+														number: data.number,
+														totalPages: data.totalPages,
+														first: data.first,
+														last: data.last
+													};
+
+													// Hiển thị dữ liệu đơn hàng
+													const tableBody = document.querySelector("tbody");
+													tableBody.innerHTML = "";
+
+													orders.forEach(order => {
+														const row = `
+                    												<tr>
+																		<td>${order.orderId}</td>
+																		<td>${order.customerName}</td>
+																		<td>${order.phoneNumber}</td>
+																		<td>${order.orderDate}</td>
+																		<td>${order.shippingAddress}</td>
+																		<td>${order.totalCost} đ</td>
+																		<td>
+                															<span class="payment-status ${order.paymentStatus === 'Đã thanh toán' ? 'paid' : 'unpaid'}">
+                    														${order.paymentStatus}
+                															</span>
+            															</td>
+																		<td>
+																			<a href="editOrder.html?orderId=${order.orderId}">
+																				<i class="fa fa-info-circle"></i> Chi tiết đơn hàng
+																			</a>
+																		</td>
+																		<td class="text-center">
+    																		<div id="tableStatus">
+        																		<select data-id="${order.orderId}" onchange="handleStatusChange(this)" aria-label="Trạng thái đơn hàng">
+            																		<option value="PENDING" ${order.orderStatus === 'PENDING' ? 'selected' : ''}>Chờ xử lý</option>
+            																		<option value="CONFIRMED" ${order.orderStatus === 'CONFIRMED' ? 'selected' : ''}>Đã xác nhận</option>
+            																		<option value="SHIPPED" ${order.orderStatus === 'SHIPPED' ? 'selected' : ''}>Đang giao</option>
+																					<option value="CONFIRM_DELIVERED" ${order.orderStatus === 'CONFIRM_DELIVERED' ? 'selected' : ''}>Xác nhận đã giao</option>
+            																		<option value="DELIVERED" ${order.orderStatus === 'DELIVERED' ? 'selected' : ''}>Đã giao</option>
+            																		<option value="CANCELLED" ${order.orderStatus === 'CANCELLED' ? 'selected' : ''}>Đã hủy</option>
+        																		</select>
+        																		<div class="status-buttons" style="margin-top: 5px; display: none;">
+            																		<button class="btn btn-success btn-sm" onclick="confirmStatusUpdate(this)" >Cập nhật</button>
+            																		<button class="btn btn-secondary btn-sm" onclick="cancelStatusUpdate(this)" >Hủy</button>
+        																		</div>
+    																		</div>
+																		</td>
+																	</tr>`;
+														tableBody.insertAdjacentHTML("beforeend", row);
+													});
+													// Hiển thị phân trang
+													renderPagination(pageInfo);
+												});
+										};
+
+										// Phân trang
+										const renderPagination = (pageInfo) => {
+											const paginationContainer = document.querySelector("#pagination");
+											paginationContainer.innerHTML = ""; // Xóa nút cũ
+
+											const { number, totalPages, first, last } = pageInfo;
+
+											// Nút "Previous"
+											const prevButton = document.createElement("button");
+											prevButton.textContent = "Previous";
+											prevButton.disabled = first; // Vô hiệu hóa nếu là trang đầu
+											prevButton.onclick = () => loadOrders(number - 1);
+											paginationContainer.appendChild(prevButton);
+
+											// Nút số trang
+											for (let i = 0; i < totalPages; i++) {
+												const pageButton = document.createElement("button");
+												pageButton.textContent = i + 1;
+												pageButton.classList.add("page-button");
+												if (i === number) {
+													pageButton.classList.add("active"); // Đánh dấu trang hiện tại
+												}
+												pageButton.onclick = () => loadOrders(i);
+												paginationContainer.appendChild(pageButton);
+											}
+
+											// Nút "Next"
+											const nextButton = document.createElement("button");
+											nextButton.textContent = "Next";
+											nextButton.disabled = last; // Vô hiệu hóa nếu là trang cuối
+											nextButton.onclick = () => loadOrders(number + 1);
+											paginationContainer.appendChild(nextButton);
+										};
+
+										const handleStatusChange = (select) => {
+											const parent = select.closest("#tableStatus"); // Tìm parent của select
+											const buttons = parent.querySelector(".status-buttons"); // Tìm nút cập nhật/hủy
+											buttons.style.display = "block"; // Hiển thị nút
+											select.setAttribute("data-current-status", select.value); // Lưu trạng thái hiện tại
+										};
+
+
+										// Xác nhận cập nhật trạng thái đơn hàng
+										const confirmStatusUpdate = (button) => {
+											console.log("Confirm button clicked"); // Debug
+											const parent = button.closest("#tableStatus");
+											const select = parent.querySelector("select");
+
+											if (!select) {
+												console.error("Cannot find select element!");
+												return;
+											}
+
+											const orderId = select.getAttribute("data-id");
+											const newStatus = select.value;
+
+
+											fetch(`http://localhost:9056/order-service/api/orders/update/${orderId}/status`, {
+												method: "PUT",
+												headers: { "Content-Type": "application/json" },
+												body: JSON.stringify({ orderStatus: newStatus }),
+											})
+												.then(response => {
+													if (response.ok) {
+														alert("Cập nhật trạng thái thành công!");
+													} else {
+														alert("Có lỗi xảy ra khi cập nhật trạng thái.");
+													}
+												})
+												.finally(() => {
+													const statusButtons = parent.querySelector(".status-buttons");
+													if (statusButtons) {
+														statusButtons.style.display = "none"; // Ẩn nút
+													}
+												});
+										};
+
+										// Hủy thay đổi trạng thái
+										const cancelStatusUpdate = (button) => {
+											console.log("Cancel button clicked"); // Debug
+											const parent = button.closest("#tableStatus");
+											const select = parent.querySelector("select");
+
+											if (!select) {
+												console.error("Cannot find select element!");
+												return;
+											}
+											const previousStatus = select.getAttribute("data-current-status");
+											select.value = previousStatus; // Khôi phục trạng thái ban đầu
+											const statusButtons = parent.querySelector(".status-buttons");
+											if (statusButtons) {
+												statusButtons.style.display = "none"; // Ẩn nút
+											}
+										};
+									</script>
+									<style>
+										.table-responsive {
+											position: relative;
+										}
+
+										.pagination {
+											display: flex;
+											justify-content: right;
+											margin-top: 10px;
+											/* Khoảng cách giữa bảng và phân trang */
+										}
+										.pagination button {
+											margin: 0 5px;
+											padding: 5px 10px;
+											border: 1px solid #ccc;
+											background-color: white;
+											cursor: pointer;
+										}
+
+										.pagination button.active {
+											background-color: #007bff;
+											color: white;
+											font-weight: bold;
+										}
+
+										.pagination button:disabled {
+											background-color: #e9ecef;
+											color: #6c757d;
+											cursor: not-allowed;
+										}
+
+										.payment-status {
+											padding: 5px 10px;
+											border-radius: 5px;
+											text-align: center;
+											font-weight: bold;
+										}
+
+										.payment-status.paid {
+											background-color: #28a745;
+											/* Màu xanh */
+											color: white;
+										}
+
+										.payment-status.unpaid {
+											background-color: #ffc107;
+											/* Màu vàng */
+											color: black;
+										}
+									</style>
+
+									<!-- end task -->
 								</div>
 							</div>
 						</div>

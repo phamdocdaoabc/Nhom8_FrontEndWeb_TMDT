@@ -134,7 +134,21 @@
 							</li>
 						</ul>
 					</div>
-					class="modal fade" id="addRowModal" tabindex="-1" role="dialog" aria-hidden="true">
+					<div class="col-md-12">
+						<div class="card">
+							<div class="card-header">
+								<div class="d-flex align-items-center">
+									<h4 class="card-title" style="text-decoration: underline;">Quản lý sản phẩm</h4>
+									<button class="btn btn-outline-success btn-round ml-auto" data-toggle="modal"
+										data-target="#addRowModal">
+										<i class="fa fa-plus me-3"></i>
+										Thêm mới
+									</button>
+								</div>
+							</div>
+							<div class="card-body">
+								<!-- Modal -->
+								<div class="modal fade" id="addRowModal" tabindex="-1" role="dialog" aria-hidden="true">
 									<div class="modal-dialog" role="document">
 										<div class="modal-content">
 											<div class="modal-header no-bd">
@@ -208,7 +222,14 @@
 															</div>
 														</div>
 
-																												<div class="col-sm-12">
+														<div class="col-sm-12">
+															<div class="form-group form-group-default">
+																<label>Images</label>
+																<input type="file" id="productImage" name="file"
+																	class="form-control">
+															</div>
+														</div>
+														<div class="col-sm-12">
 															<div class="form-group form-group-default">
 																<label>Mô tả sản phẩm</label>
 																<textarea id="description" class="form-control"
@@ -216,7 +237,14 @@
 															</div>
 														</div>
 													</div>
-																									</form>
+													<div class="modal-footer no-bd">
+														<button type="submit" id="createProductBtn"
+															class="btn btn-primary">Thêm
+															mới</button>
+														<button type="button" class="btn btn-danger"
+															data-dismiss="modal">Hủy</button>
+													</div>
+												</form>
 											</div>
 										</div>
 									</div>
