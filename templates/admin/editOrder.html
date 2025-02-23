@@ -9,7 +9,17 @@
 	<link rel="icon" href="/assets/img/icon.ico" type="image/x-icon" />
 
 	<!-- Fonts and icons -->
-	
+	<script src="/static/assets/js/plugin/webfont/webfont.min.js"></script>
+	<script>
+		WebFont.load({
+			google: { "families": ["Lato:300,400,700,900"] },
+			custom: { "families": ["Flaticon", "Font Awesome 5 Solid", "Font Awesome 5 Regular", "Font Awesome 5 Brands", "simple-line-icons"], urls: ['/static/assets/css/fonts.min.css'] },
+			active: function () {
+				sessionStorage.fonts = true;
+			}
+		});
+	</script>
+
 	<!-- CSS Files -->
 	<link rel="stylesheet" href="/static/assets/css/bootstrap.min.css">
 	<link rel="stylesheet" href="/static/assets/css/atlantis.min.css">
@@ -162,8 +172,65 @@
 											<!--Hiển thị list-->
 										</tbody>
 									</table>
-																		
-																	<!-- Modal -->
+									<script>
+										document.addEventListener("DOMContentLoaded", function () {
+											const orderDetailsBody = document.getElementById("order-details-body");
+
+											// Lấy orderId từ URL
+											const urlParams = new URLSearchParams(window.location.search);
+											const orderId = urlParams.get("orderId");								
+
+											if (!orderId) {
+												alert("Không tìm thấy orderId trong URL.");
+												return;
+											}
+
+											// Gọi API để lấy thông tin sản phẩm
+											fetch(`http://localhost:9056/shipping-service/api/shippings/${orderId}/products`)
+												.then(response => {
+													if (!response.ok) throw new Error("Không thể tải thông tin sản phẩm.");
+													return response.json();
+												})
+												.then(data => {
+													renderOrderDetails(data);
+												})
+												.catch(error => {
+													console.error("Lỗi:", error);
+													alert("Có lỗi xảy ra khi lấy dữ liệu sản phẩm.");
+												});
+
+											// Hàm hiển thị dữ liệu vào bảng
+											function renderOrderDetails(products) {
+												orderDetailsBody.innerHTML = ""; // Xóa nội dung cũ
+
+												products.forEach((item, index) => {													
+													const row = `
+																	<tr>
+																		<td class="text-center">${index + 1}</td>
+																		<td>
+																			<img src="${item.imageUrl}" width="120px" alt="product" />
+																		</td>
+																		<td>${item.name}</td>
+																		<td>${item.quantity}</td>
+																		<td>${item.price} đ</td>
+																		<td>${item.totalPrice} đ</td>
+																	</tr>
+																`;
+													orderDetailsBody.insertAdjacentHTML("beforeend", row);
+												});
+											}
+										});
+
+									</script>
+									
+									<script>
+										function showConfigModalDialog(id, name) {
+											$('#name').text(name);
+											$('#yesOption').attr('href', '/admin/delete/' + id);
+											$('#configmationId').modal('show');
+										}
+									</script>
+									<!-- Modal -->
 									<div class="modal" tabindex="-1" role="dialog" id="configmationId">
 										<div class="modal-dialog" role="document">
 											<div class="modal-content">

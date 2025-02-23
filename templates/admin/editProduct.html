@@ -20,7 +20,12 @@
 		});
 	</script>
 
-	</head>
+	<!-- CSS Files -->
+	<link rel="stylesheet" href="/static/assets/css/bootstrap.min.css">
+	<link rel="stylesheet" href="/static/assets/css/atlantis.min.css">
+	<!-- CSS Just for demo purpose, don't include it in your project -->
+	<link rel="stylesheet" href="/static/assets/css/demo.css">
+</head>
 
 <body>
 	<div class="wrapper">
@@ -230,7 +235,179 @@
 										</form>
 									</div>
 								</section>
-															</div>
+								<script>
+									document.addEventListener("DOMContentLoaded", function () {
+										const urlParams = new URLSearchParams(window.location.search);
+										const productId = urlParams.get("productId");
+
+										if (!productId) {
+											alert("Không tìm thấy productId trong URL.");
+											return;
+										}
+
+										const updateBtn = document.getElementById("updateBtn");
+
+										// Gắn sự kiện click vào nút
+										updateBtn.addEventListener("click", function (event) {
+											const productId = document.getElementById("productId").value; // Đảm bảo có ID sản phẩm
+											if (!productId) {
+												alert("Không tìm thấy ID sản phẩm. Vui lòng kiểm tra lại.");
+												return;
+											}
+
+											// Gọi hàm cập nhật sản phẩm
+											updateProduct(event, productId);
+										});
+
+										// Hiển thị thông tin sản phẩm
+										async function loadProduct() {
+											try {
+												const categorySelect = document.getElementById("categoryName");
+												const response = await fetch(`http://localhost:9056/product-service/api/products/${productId}`);
+												if (!response.ok) throw new Error("Không thể tải thông tin sản phẩm.");
+
+												const data = await response.json();
+												document.getElementById("productId").value = productId;
+												document.getElementById("productName").value = data.productName;
+												document.getElementById("price").value = data.price;
+												document.getElementById("quantity").value = data.quantity;
+												document.getElementById("discount").value = data.discount;
+												document.getElementById("createdAt").value = data.createdAt;
+												document.getElementById("description").value = data.description;
+
+												const productTypeSelect = document.getElementById("productType");
+												productTypeSelect.value = data.productType;
+
+												// Hiển thị hình ảnh hiện tại
+												const imageContainer = document.getElementById("currentImages");
+												imageContainer.innerHTML = ""; // Xóa các ảnh cũ (nếu có)
+
+												data.imageUrl.forEach(imageUrl => {
+													const imageWrapper = document.createElement("div");
+													imageWrapper.style = "position: relative; display: inline-block;";
+
+													const imgElement = document.createElement("img");
+													imgElement.src = imageUrl;
+													imgElement.alt = "Product Image";
+													imgElement.style = "width: 100px; height: 100px; object-fit: cover; border: 1px solid #ccc;";
+
+													const removeButton = document.createElement("span");
+													removeButton.innerHTML = "&#10006;"; // Dấu "x"
+													removeButton.style = "position: absolute; top: 0; right: 0; background-color: red; color: white; font-size: 16px; padding: 2px; cursor: pointer; border-radius: 50%;";
+
+													removeButton.onclick = function () {
+														// Xử lý loại bỏ ảnh khi nhấn vào dấu "x"
+														imageWrapper.remove();
+														// Xóa ảnh khỏi danh sách ảnh
+														data.images.splice(index, 1);
+													};
+
+													imageWrapper.appendChild(imgElement);
+													imageWrapper.appendChild(removeButton);
+													imageContainer.appendChild(imageWrapper);
+												});
+
+												// Tải danh sách thể loại
+												await loadCategories(data.categoryName);
+											} catch (error) {
+												alert(error.message);
+											}
+										}
+
+										// Danh sách thể loại
+										async function loadCategories(currentCategory) {
+											try {
+												const categorySelect = document.getElementById("categoryName");
+
+												const response = await fetch("http://localhost:9056/product-service/api/categories/count");
+												if (!response.ok) throw new Error("Không thể tải danh sách thể loại.");
+
+												const categories = await response.json();
+
+												// Xóa các `option` hiện có
+												categorySelect.innerHTML = "";
+
+												// Thêm các thể loại vào danh sách
+												categories.forEach(category => {
+													const option = document.createElement("option");
+													option.value = category.categoryName;
+													option.textContent = category.categoryName;
+
+													// Chọn thể loại hiện tại
+													if (category.categoryName === currentCategory) {
+														option.selected = true;
+													}
+
+													categorySelect.appendChild(option);
+												});
+											} catch (error) {
+												alert(error.message);
+											}
+										}
+
+										// Cập nhật thông tin sản phẩm
+										async function updateProduct(event, productId) {
+											event.preventDefault();
+
+											// Gọi API cập nhật thông tin sản phẩm
+											const productRequest = {
+												productName: document.getElementById("productName").value,
+												categoryName: document.getElementById("categoryName").value,
+												price: parseFloat(document.getElementById("price").value),
+												quantity: parseInt(document.getElementById("quantity").value),
+												discount: parseFloat(document.getElementById("discount").value),
+												createdAt: document.getElementById("createdAt").value,
+												description: document.getElementById("description").value,
+												productType: document.getElementById("productType").value,
+											};
+
+											try {
+												const productResponse = await fetch(`http://localhost:9056/product-service/api/products/updateProduct/${productId}`, {
+													method: "PUT",
+													headers: {
+														"Content-Type": "application/json"
+													},
+													body: JSON.stringify(productRequest)
+												});
+
+												if (!productResponse.ok) throw new Error("Cập nhật thông tin sản phẩm thất bại.");
+
+												alert("Cập nhật thông tin sản phẩm thành công.");
+												loadProduct();
+											} catch (error) {
+												alert(error.message);
+												return;
+											}
+
+											// Gọi API cập nhật hình ảnh nếu có hình ảnh mới
+											const fileInput = document.getElementById("productImage");
+											if (fileInput.files.length > 0) {
+												const formData = new FormData();
+												for (let file of fileInput.files) {
+													formData.append("images", file);
+												}
+
+												try {
+													const imageResponse = await fetch(`http://localhost:9056/product-service/api/products/${productId}/images`, {
+														method: "PUT",
+														body: formData,
+													});
+													if (!imageResponse.ok) throw new Error("Cập nhật hình ảnh thất bại.");
+													alert("Cập nhật hình ảnh thành công.");
+													loadProduct();
+												} catch (error) {
+													alert(error.message);
+												}
+											}
+										}
+
+										// Gán sự kiện
+										document.querySelector("form").addEventListener("submit", updateProduct);
+										// Gọi các hàm khởi tạo
+										loadProduct();
+									});
+								</script>
+							</div>
 						</div>
 					</div>
 				</div>
