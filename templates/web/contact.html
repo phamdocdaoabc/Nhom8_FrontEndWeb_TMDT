@@ -33,7 +33,59 @@
     <!-- Header sẽ được load ở đây -->
     <header id="header-placeholder"></header>
     <script>
-                // Hàm xử lý giỏ hàng
+        // Xóa sản phẩm khỏi giỏ hàng
+        function removeItemFromCart(productId) {
+            const token = localStorage.getItem("token");
+
+            // Lấy userId từ API profile
+            fetch("http://localhost:9056/user-service/api/profile/infor", {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+                .then(response => response.json())
+                .then(userInfo => {
+                    const userId = userInfo.userId; // Lấy userId từ response
+
+                    // Sau khi có userId, gọi API xóa sản phẩm khỏi giỏ hàng
+                    return fetch(`http://localhost:9056/order-service/api/cart/remove?userId=${userId}&productId=${productId}`, {
+                        method: "DELETE",
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    });
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Lỗi khi xóa sản phẩm.");
+                    }
+
+                    // Xóa sản phẩm khỏi giao diện
+                    const productElement = document.querySelector(`#cart-item-${productId}`);
+                    if (productElement) {
+                        productElement.remove();
+                    }
+
+                    // Kiểm tra nếu giỏ hàng trống
+                    const cartItems = document.querySelectorAll(".cart-item");
+                    if (cartItems.length === 0) {
+                        document.getElementById("emptyCartMessage").style.display = "block";
+                        document.getElementById("cartFooter").style.display = "none";
+                        document.getElementById("cartTotalItems").textContent = "Tổng số lượng giỏ hàng (0)";
+                    } else {
+                        // Cập nhật lại tổng số lượng giỏ hàng
+                        const totalCartItems = parseInt(document.getElementById("totalCartItems3").textContent.match(/\d+/)) - 1;
+                        document.getElementById("totalCartItems3").textContent = `Tổng số lượng giỏ hàng: ${totalCartItems}`;
+                        document.getElementById("cartTotalItems").textContent = `Tổng số lượng giỏ hàng (${totalCartItems})`;
+                    }
+                })
+                .catch(error => {
+                    console.error("Lỗi khi xóa sản phẩm:", error);
+                });
+        }
+
+        // Hàm xử lý giỏ hàng
         function loadOpenCarItem() {
             const cartIcon = document.getElementById('cartIcon'); // Biểu tượng giỏ hàng
             const cartSidebar = document.getElementById('cartSidebar'); // Sidebar giỏ hàng
@@ -100,7 +152,85 @@
             }
         }
 
-                // Hiển thị nút menu Tài khoản
+        // Định dạng tiền tệ
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+        }
+
+        // Tải chi tiết giỏ hàng khi tải trang
+        document.addEventListener('DOMContentLoaded', fetchCartDetails);
+
+        // Hàm tải giỏ hàng từ API
+        async function fetchCartDetails() {
+            try {
+                const token = localStorage.getItem('token');
+                const userInfoResponse = await fetch('http://localhost:9056/user-service/api/profile/infor', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!userInfoResponse.ok) throw new Error('Không thể lấy thông tin người dùng.');
+
+                const userInfo = await userInfoResponse.json();
+                const userId = userInfo.userId;
+
+                const cartResponse = await fetch(`http://localhost:9056/order-service/api/cart/${userId}`, {
+                    method: 'GET'
+                });
+
+                if (!cartResponse.ok) throw new Error('Không thể lấy thông tin giỏ hàng.');
+
+                const cartData = await cartResponse.json();
+                renderCartDetails(cartData);
+                let cartItemCount = cartData.totalItems;
+                document.getElementById("totalCartItems2").textContent = cartItemCount;
+                const cartItemTotal = document.getElementById("totalCartItems3");
+                cartItemTotal.textContent = `Tổng số lượng giỏ hàng: ${cartData.totalItems}`;
+            } catch (error) {
+                console.error('Lỗi khi tải giỏ hàng:', error);
+                document.getElementById('emptyCartMessage').innerHTML = `
+                    <h4 style="color: #119744">Không thể tải thông tin giỏ hàng!</h4>
+                    <h5 style="color: #119744">Vui lòng thử lại sau!</h5>
+                `;
+            }
+        }
+
+
+        // Đảm bảo hàm loadUserProfile được khai báo trước
+        function loadUserProfile() {
+            const token = localStorage.getItem('token');
+            // Lấy phần tử chứa thông tin user
+            const userProfileElement = document.getElementById('user-profile');
+            if (!token) {
+                console.error('Bạn chưa đăng nhập!');
+                userProfileElement.style.display = 'none'; // Ẩn avatar và userName
+                return;
+            }
+
+            fetch('http://localhost:9056/user-service/api/profile/infor', {
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const userNameElement = document.getElementById('user-name');
+                    const userAvatarElement = document.getElementById('user-avatar');
+
+                    if (data.fullName) userNameElement.textContent = data.fullName;
+                    if (data.imageUrl) {
+                        userAvatarElement.src = "data:image/jpeg;base64," + data.imageUrl;
+                    } else {
+                        userAvatarElement.src = '/static/images/user.png';
+                    }
+                    // Sau khi load thành công, hiển thị avatar và userName
+                    userProfileElement.style.display = 'block';
+
+                })
+                .catch(error => console.error('Lỗi khi tải thông tin người dùng:', error));
+            userProfileElement.style.display = 'none'; // Ẩn nếu có lỗi
+        }
+
+        // Hiển thị nút menu Tài khoản
         function initHeaderScripts() {
             const token = localStorage.getItem('token');
 
