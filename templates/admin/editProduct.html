@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta charset="UTF-8" />
+	<title>Greenty - Trang quản trị</title>
+	<meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+	<link rel="icon" href="/static/assets/img/icon.ico" type="image/x-icon" />
+
+	<!-- Fonts and icons -->
+	<script src="/static/assets/js/plugin/webfont/webfont.min.js"></script>
+	<script>
+		WebFont.load({
+			google: { "families": ["Lato:300,400,700,900"] },
+			custom: { "families": ["Flaticon", "Font Awesome 5 Solid", "Font Awesome 5 Regular", "Font Awesome 5 Brands", "simple-line-icons"], urls: ['/static/assets/css/fonts.min.css'] },
+			active: function () {
+				sessionStorage.fonts = true;
+			}
+		});
+	</script>
+
+	</head>
+
+<body>
+	<div class="wrapper">
+		<!-- Header -->
+		<header id="header-placeholder"></header>
+		<script>
+			// Load nội dung từ header.html
+			fetch('fragments/header.html')
+				.then(response => response.text())
+				.then(data => {
+					document.getElementById('header-placeholder').innerHTML = data;
+				})
+				.catch(error => console.error('Error loading header:', error));
+		</script>
+		<!-- End Header -->
+
+		<!-- Navbar -->
+		<header id="navbar-placeholder"></header>
+		<script>
+			function loadAdminProfile() {
+				const token = localStorage.getItem('token'); // Lấy token từ localStorage
+				console.log('Token:', token); // Hiển thị token ra console
+
+				// Lấy phần tử chứa thông tin user
+				const userProfileElement = document.getElementById('user-profile');
+				const userNameElement = document.getElementById('user-name');
+				const userAvatarElement = document.getElementById('user-avatar');
+
+				// Kiểm tra nếu không có token
+				if (!token) {
+					console.error('Bạn chưa đăng nhập!');
+					userProfileElement.style.display = 'none'; // Ẩn avatar và userName
+					return;
+				}
+
+				// Gọi API để lấy thông tin người dùng
+				fetch('http://localhost:9056/user-service/api/profile/infor', {
+					method: 'GET',
+					headers: { 'Authorization': 'Bearer ' + token }
+				})
+					.then(response => {
+						if (!response.ok) {
+							throw new Error('Không thể tải thông tin người dùng!');
+						}
+						return response.json();
+					})
+					.then(data => {
+						console.log('Thông tin người dùng:', data);
+
+						// Hiển thị thông tin người dùng
+						if (data.fullName) {
+							userNameElement.textContent = data.fullName;
+						} else {
+							userNameElement.textContent = "Admin";
+						}
+
+						// Hiển thị avatar
+						if (data.imageUrl) {
+							userAvatarElement.src = "data:image/png;base64," + data.imageUrl;
+						} else {
+							userAvatarElement.src = '/static/images/user.png'; // Avatar mặc định
+						}
+
+						// Hiển thị phần tử sau khi có dữ liệu
+						userProfileElement.style.display = 'block';
+					})
+					.catch(error => {
+						console.error('Lỗi khi tải thông tin người dùng:', error);
+						userAvatarElement.src = '/static/images/user.png'; // Avatar mặc định khi lỗi
+						userProfileElement.style.display = 'none'; // Ẩn thông tin nếu xảy ra lỗi
+					});
+			}
+			// Load nội dung từ navbar.html
+			fetch('fragments/navbar.html')
+				.then(response => response.text())
+				.then(data => {
+					document.getElementById('navbar-placeholder').innerHTML = data;
+					loadAdminProfile();
+				})
+				.catch(error => console.error('Error loading navbar:', error));
+		</script>
+		<!-- End Navbar -->
+
+		<div class="main-panel">
+			<div class="content">
+				<div class="page-inner">
+					<div class="page-header">
+						<h4 class="page-title text-success">Quản lý sản phẩm</h4>
+						<ul class="breadcrumbs">
+							<li class="nav-home">
+								<a href="#">
+									<i class="flaticon-home"></i>
+								</a>
+							</li>
+							<li class="separator">
+								<i class="flaticon-right-arrow"></i>
+							</li>
+							<li class="nav-item">
+								<a th:href="@{/admin/home}">Trang chủ</a>
+							</li>
+							<li class="separator">
+								<i class="flaticon-right-arrow"></i>
+							</li>
+							<li class="nav-item">
+								<a href="#">Quản lý sản phẩm</a>
+							</li>
+						</ul>
+					</div>
+					<div class="col-md-12">
+						<div class="card">
+							<div class="card-header">
+								<div class="d-flex align-items-center">
+									<h4 class="card-title" style="text-decoration: underline;">Quản lý sản phẩm</h4>
+								</div>
+							</div>
+							<div class="card-header">
+								<section class="row">
+									<div class="col-9 offset-1">
+										<form enctype="multipart/form-data">
+											<div class="row">
+												<div class="col-sm-12">
+													<label for="productId">ID <a
+															style="color: red"><strong>*</strong></a></label>
+													<input type="hidden">
+													<input type="text" class="form-control" name="productId"
+														id="productId" aria-describedby="categoryhelpId"
+														placeholder="Mã sản phẩm ?" readonly="readonly">
+												</div>
+												<div class="col-sm-12">
+													<div class="form-group form-group-default">
+														<label>Tên sản phẩm</label>
+														<input id="productName" type="text" class="form-control"
+															placeholder="Tên sản phẩm...">
+													</div>
+												</div>
+												<div class="col-md-6 pr-0">
+													<div class="form-group form-group-default">
+														<label>Thể loại</label>
+														<select class="form-control" name="category" id="categoryName">
+															<!-- Các option sẽ được thêm động từ script -->
+														</select>
+													</div>
+												</div>
+												<div class="col-md-6 pr-0">
+													<div class="form-group form-group-default">
+														<label>Đơn giá</label>
+														<input id="price" min=0 type="number" class="form-control"
+															placeholder="Đơn giá">
+													</div>
+												</div>
+												<div class="col-md-6 pr-0">
+													<div class="form-group form-group-default">
+														<label>Số lượng</label>
+														<input id="quantity" min=0 type="number" class="form-control"
+															placeholder="Số lượng">
+													</div>
+												</div>
+												<div class="col-md-6 pr-0">
+													<div class="form-group form-group-default">
+														<label>Giảm giá <i>(%)</i></label>
+														<input id="discount" min=0 type="number" class="form-control"
+															placeholder="giảm giá">
+													</div>
+												</div>
+												<div class="col-md-6 pr-0">
+													<div class="form-group form-group-default">
+														<label>Ngày thêm</label>
+														<input id="createdAt" type="date" class="form-control"
+															placeholder="ngày thêm">
+													</div>
+												</div>
+												<div class="col-md-6 pr-0">
+													<div class="form-group form-group-default">
+														<label>Xu hướng</label>
+														<select class="form-control" name="prouctType" id="productType">
+															<option value="new">Mới</option>
+															<option value="featured">Đặc sắc</option>
+															<option value="bestseller">Bán chạy</option>
+														</select>
+													</div>
+												</div>
+												<div class="col-sm-12">
+													<div class="form-group form-group-default">
+														<label>Images</label>
+														<div id="currentImages"
+															style="display: flex; gap: 10px; flex-wrap: wrap;">
+															<!-- Hình ảnh sẽ được thêm động -->
+														</div>
+														<input type="file" id="productImage" name="images" multiple
+															class="form-control mt-3">
+													</div>
+												</div>
+												<div class="col-sm-12">
+													<div class="form-group form-group-default">
+														<label>Mô tả sản phẩm</label>
+														<textarea id="description" class="form-control"
+															placeholder="Mô tả sản phẩm"></textarea>
+													</div>
+												</div>
+											</div>
+											<div class="modal-footer no-bd">
+												<button type="submit" id="updateBtn" class="btn btn-primary">Cập
+													nhật</button>
+												<button type="submit" class="btn btn-danger" data-dismiss="modal"
+													formaction="products.html" formmethod="get">Hủy</button>
+											</div>
+										</form>
+									</div>
+								</section>
+															</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<footer class="footer">
+				<div class="container-fluid">
+					<nav class="pull-left">
+						<ul class="nav">
+							<li class="nav-item">
+								<a class="nav-link" href="javascript:void(0);">
+									GREENY-SHOP
+								</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link" href="javascript:void(0);">
+									Help
+								</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link" href="javascript:void(0);">
+									Licenses
+								</a>
+							</li>
+						</ul>
+					</nav>
+					<div class="copyright ml-auto">
+						2024, made with <i class="fa fa-heart heart text-danger"></i> by <a
+							href="javascript:void(0);">GREENTY-SHOP</a>
+					</div>
+				</div>
+			</footer>
+		</div>
+
+
+
+
+	</div>
+	<!--   Core JS Files   -->
+	<script src="/static/assets/js/core/jquery.3.2.1.min.js"></script>
+	<script src="/static/assets/js/core/popper.min.js"></script>
+	<script src="/static/assets/js/core/bootstrap.min.js"></script>
+	<!-- jQuery UI -->
+	<script src="/static/assets/js/plugin/jquery-ui-1.12.1.custom/jquery-ui.min.js"></script>
+	<script src="/static/assets/js/plugin/jquery-ui-touch-punch/jquery.ui.touch-punch.min.js"></script>
+
+	<!-- jQuery Scrollbar -->
+	<script src="/static/assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
+	<!-- Datatables -->
+	<script src="/static/assets/js/plugin/datatables/datatables.min.js"></script>
+	<!-- Atlantis JS -->
+	<script src="/static/assets/js/atlantis.min.js"></script>
+	<!-- Atlantis DEMO methods, don't include it in your project! -->
+	<script src="/static/assets/js/setting-demo2.js"></script>
+</body>
+
+</html>
