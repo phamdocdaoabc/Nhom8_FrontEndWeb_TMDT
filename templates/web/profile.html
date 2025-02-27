@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+	<meta name="author" content="mironcoder" />
+	<meta name="email" content="mironcoder@gmail.com" />
+	<meta name="profile" content="https://themeforest.net/user/mironcoder" />
+	<meta name="template" content="greeny" />
+	<meta name="title" content="greeny - Ecommerce Food Store HTML Template" />
+	<meta name="keywords"
+		content="organic, food, shop, ecommerce, store, html, bootstrap, template, agriculture, vegetables, products, farm, grocery, natural, online" />
+	<title>Thế giới nông sản</title>
+	<link rel="icon" href="/static/images/logo/logoWeb.png" />
+	<link rel="stylesheet" href="/static/fonts/flaticon/flaticon.css" />
+	<link rel="stylesheet" href="/static/fonts/icofont/icofont.min.css" />
+	<link rel="stylesheet" href="/static/fonts/fontawesome/fontawesome.min.css" />
+	<link rel="stylesheet" href="/static/vendor/venobox/venobox.min.css" />
+	<link rel="stylesheet" href="/static/vendor/slickslider/slick.min.css" />
+	<link rel="stylesheet" href="/static/vendor/niceselect/nice-select.min.css" />
+	<link rel="stylesheet" href="/static/vendor/bootstrap/bootstrap.min.css" />
+	<link rel="stylesheet" href="/static/css/main.css" />
+	<link rel="stylesheet" href="/static/css/profile.css" />
+</head>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<body>
+
+	<!--************************************
+				Header Start
+		*************************************-->
+	<!-- Header sẽ được load ở đây -->
+	<header id="header-placeholder"></header>
+	<script>
+		// Hàm xóa sản phẩm khỏi giỏ hàng
+		//..
+
+		// Hàm xử lý đóng / mở giỏ hàng
+		//...
+
+		// Hiển thị chi tiết giỏ hàng
+		//...
+
+		// Định dạng tiền tệ
+		function formatCurrency(amount) {
+			return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+		}
+
+		// Tải chi tiết giỏ hàng khi tải trang
+		//...
+
+		// Hàm tải giỏ hàng từ API
+		//...
+
+
+		// Đảm bảo hàm loadUserProfile được khai báo trước
+		function loadUserProfile1() {
+			const token = localStorage.getItem('token');
+			// Lấy phần tử chứa thông tin user
+			const userProfileElement = document.getElementById('user-profile');
+			if (!token) {
+				console.error('Bạn chưa đăng nhập!');
+				userProfileElement.style.display = 'none'; // Ẩn avatar và userName
+				return;
+			}
+
+			fetch('http://localhost:9056/user-service/api/profile/infor', {
+				method: 'GET',
+				headers: { 'Authorization': 'Bearer ' + token }
+			})
+				.then(response => response.json())
+				.then(data => {
+					const userNameElement = document.getElementById('user-name');
+					const userAvatarElement = document.getElementById('user-avatar');
+
+					if (data.fullName) userNameElement.textContent = data.fullName;
+					if (data.imageUrl) {
+						userAvatarElement.src = "data:image/jpeg;base64," + data.imageUrl;
+					} else {
+						userAvatarElement.src = '/static/images/user.png';
+					}
+					// Sau khi load thành công, hiển thị avatar và userName
+					userProfileElement.style.display = 'block';
+
+				})
+				.catch(error => console.error('Lỗi khi tải thông tin người dùng:', error));
+			userProfileElement.style.display = 'none'; // Ẩn nếu có lỗi
+		}
+
+		// Hiển thị nút menu Tài khoản
+		function initHeaderScripts() {
+			const token = localStorage.getItem('token');
+
+			// Nếu không có token, hiển thị các mục liên quan đến đăng nhập
+			if (!token) {
+				document.getElementById('login-link').style.display = 'block';
+				document.getElementById('register-link').style.display = 'block';
+				document.getElementById('forgot-link').style.display = 'block';
+				document.getElementById('profile-link').style.display = 'none';
+				document.getElementById('logout-link').style.display = 'none';
+				document.getElementById('admin-link').style.display = 'none';
+				return;
+			}
+
+			// Gọi API để lấy thông tin người dùng
+			fetch('http://localhost:9056/user-service/api/profile/infor', {
+				method: 'GET',
+				headers: { 'Authorization': 'Bearer ' + token }
+			})
+				.then(response => {
+					if (!response.ok) {
+						throw new Error('Không thể tải thông tin người dùng!');
+					}
+					return response.json();
+				})
+				.then(data => {
+					console.log('Thông tin người dùng:', data);
+
+					// Hiển thị các mục dựa trên vai trò
+					if (data.role === "ROLE_ADMIN") {
+						document.getElementById('login-link').style.display = 'none';
+						document.getElementById('register-link').style.display = 'none';
+						document.getElementById('forgot-link').style.display = 'none';
+						document.getElementById('profile-link').style.display = 'block';
+						document.getElementById('logout-link').style.display = 'block';
+						document.getElementById('admin-link').style.display = 'block';
+					} else if (data.role === "ROLE_USER") {
+						document.getElementById('login-link').style.display = 'none';
+						document.getElementById('register-link').style.display = 'none';
+						document.getElementById('forgot-link').style.display = 'none';
+						document.getElementById('profile-link').style.display = 'block';
+						document.getElementById('logout-link').style.display = 'block';
+						document.getElementById('admin-link').style.display = 'none';
+					}
+				})
+				.catch(error => {
+					console.error('Lỗi khi tải thông tin người dùng:', error);
+				});
+
+			document.getElementById('logout-btn').addEventListener('click', function () {
+				localStorage.removeItem('token');
+				window.location.href = '/templates/web/login.html';
+			});
+		}
+
+		function loadListCategory() {
+			fetch('http://localhost:9056/product-service/api/categories/count')
+				.then(response => response.json())
+				.then(data => {
+					console.log(data); // Xem cấu trúc trả về
+					const categoryList = document.getElementById('category-list');
+					categoryList.innerHTML = ''; // Xóa danh sách trước khi thêm mới
+
+					data.forEach(item => {
+						const listItem = document.createElement('li');
+						const link = document.createElement('a');
+						link.href = `/templates/web/shop.html?categoryId=${item.categoryId}`;
+						link.innerText = `${item.categoryName} (${item.productCount})`; // Hiển thị tên thể loại và số lượng sản phẩm
+
+						listItem.appendChild(link);
+						categoryList.appendChild(listItem);
+					});
+				})
+				.catch(error => console.error('Error fetching category data:', error));
+		}
+
+		// Load nội dung từ header.html và chèn vào phần tử #header-placeholder
+		fetch('fragments/header.html')
+			.then(response => response.text())
+			.then(data => {
+				document.getElementById('header-placeholder').innerHTML = data;
+				// Sau khi header được nhúng, kích hoạt script trong header
+				loadUserProfile1();
+				initHeaderScripts();
+				loadListCategory();
+				loadOpenCarItem();
+			})
+			.catch(error => console.error('Error loading header:', error));
+	</script>
+	<!--************************************
+				Header End
+		*************************************-->
+
+	<section class="inner-section single-banner"
+		style="background: url(/static/images/single-banner.jpg) no-repeat center">
+		<div class="container">
+			<h2>thông tin tài khoản</h2>
+			<ol class="breadcrumb">
+				<li class="breadcrumb-item"><a th:href="@{/}">Trang chủ >></a></li>
+
+			</ol>
+		</div>
+	</section>
+
+	<section class="inner-section profile-part">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-12">
+					<div class="account-title">
+						<h4>Tài khoản của bạn</h4>
+					</div>
+					<div id="alert-success" class="alert alert-success" style="display:none;">
+						Cập nhật profile thành công!
+						</br>
+					</div>
+					<div class="account-content">
+						<form id="profile-form" enctype="multipart/form-data">
+							<div class="row">
+								<!-- Avatar Section -->
+								<div class="col-lg-2">
+									<div class="profile-image">
+										<label class="form-label">Hình Đại Diện</label> <a href="javascript:void(0);">
+											<img alt="Avatar" class="avatar-img rounded-circle"
+												style="width: 120px; height: 120px; object-fit: cover; border-radius: 50%;"
+												id="avatar">
+										</a>
+									</div>
+									<input type="file" name="image" id="image" class="form-control" accept="image/*"
+										onchange="previewAndEncodeImage(this)">
+								</div>
+
+								<div class="col-md-6 col-lg-4">
+									<div class="form-group">
+										<label class="form-label">Họ và tên:</label> <input class="form-control"
+											type="text" id="fullName" />
+									</div>
+									<div class="form-group">
+										<label class="form-label">Số Điện Thoại:</label> <input class="form-control"
+											type="text" id="phone" />
+									</div>
+									<div class="form-group">
+										<label class="form-label">Giới Tính:</label>
+										<div class="gender-options">
+											<input type="radio" name="sex" value="Nam" /> Nam
+											<input type="radio" name="sex" value="Nữ" /> Nữ
+										</div>
+									</div>
+								</div>
+								<div class="col-md-6 col-lg-4">
+									<div class="form-group">
+										<label class="form-label">Địa Chỉ Email:</label> <input class="form-control"
+											type="email" id="email" />
+									</div>
+									<div class="form-group">
+										<label class="form-label">Địa Chỉ Nhà:</label> <input class="form-control"
+											type="text" id="adress" />
+									</div>
+									<div class="form-group">
+										<label class="form-label">Ngày Sinh:</label> <input class="form-control"
+											type="date" id="birthday" />
+									</div>
+								</div>
+								<!-- Save Button -->
+								<div class="text-center mt-4 mb-3">
+									<button type="submit" class="btn btn-primary">Cập nhật</button>
+								</div>
+						</form>
+
+						<!-- Bootstrap JS và jQuery -->
+						<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+						<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+						<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+            <!-- Hiển thị thông tin User -->
+						<script>
+							window.onload = function () {
+								loadUserProfile();
+							};
+							function loadUserProfile() {
+								const token = localStorage.getItem('token'); // Lấy token từ localStorage
+								console.log('Token:', token); // Hiển thị token ra console
+								if (!token) {
+									alert('Bạn chưa đăng nhập!');
+								}
+								fetch('http://localhost:9056/user-service/api/profile/infor', {
+									method: 'GET',
+									headers: { 'Authorization': 'Bearer ' + token }
+								})
+									.then(response => {
+										if (!response.ok) {
+											throw new Error('Failed to fetch user profile');
+										}
+										return response.json();
+									})
+									.then(data => {
+										// Hiển thị thông tin user
+										document.getElementById('fullName').value = data.fullName;
+										document.getElementById('email').value = data.email;
+										document.getElementById('phone').value = data.phone;
+										document.getElementById('adress').value = data.adress;
+										document.getElementById('birthday').value = data.birthday;
+
+										// Hiển thị avatar từ Base64
+										if (data.imageUrl) {
+											document.getElementById('avatar').src = "data:image/png;base64," + data.imageUrl;
+										}
+
+										// Hiển thị giới tính
+										const genderRadio = document.querySelector(`input[name="sex"][value="${data.sex}"]`);
+										if (genderRadio) {
+											genderRadio.checked = true;
+										}
+									})
+									.catch(error => console.error('Error:', error));
+							}
+						</script>
+
+						<!--Update profile-->
+						<script>
+							let imageBase64 = null;
+
+							// Hàm xem trước ảnh đại diện và mã hóa ảnh thành Base64
+							function previewAndEncodeImage(element) {
+								const reader = new FileReader();
+								reader.onloadend = function () {
+									// Gắn ảnh đã chọn vào thẻ <img> để hiển thị xem trước
+									document.getElementById('avatar').src = reader.result;
+
+									// Lưu base64 để gửi đến server (bỏ tiền tố "data:image/png;base64,")
+									imageBase64 = reader.result.split(',')[1];
+									// Kiểm tra xem ảnh có được mã hóa đúng Base64 không
+									console.log("Base64 Image: ", imageBase64); // Đây là log để kiểm tra Base64
+								}
+								reader.readAsDataURL(element.files[0]);
+							}
+
+							document.getElementById('profile-form').addEventListener('submit', function (e) {
+								e.preventDefault();
+								const token = localStorage.getItem('token');
+								const userData = {
+									fullName: document.getElementById('fullName').value,
+									email: document.getElementById('email').value,
+									phone: document.getElementById('phone').value,
+									adress: document.getElementById('adress').value,
+									birthday: document.getElementById('birthday').value,
+									sex: document.querySelector('input[name="sex"]:checked').value,
+									imageUrl: imageBase64 // Gửi ảnh Base64 đến server
+								};
+
+								fetch('http://localhost:9056/user-service/api/profile/update', {
+									method: 'PUT',
+									headers: {
+										'Content-Type': 'application/json',
+										'Authorization': 'Bearer ' + token
+									},
+									body: JSON.stringify(userData)
+								})
+									.then(response => {
+										if (response.ok) {
+											document.getElementById('alert-success').style.display = 'block';
+										} else {
+											alert('Có lỗi xảy ra khi cập nhật trạng thái.');
+										}
+									})
+									.catch(error => {
+										console.error('Error:', error);
+										alert('Có lỗi xảy ra khi gọi API.');
+									});
+							});							
+						</script>
+
+						<div class="col-lg-12">
+							<div class="account-card mb-0">
+								<div class="account-title">
+									<h4>Lịch sử đặt hàng</h4>
+								</div>
+								<section class="inner-section checkout-part">
+									<div class="container">
+										<div class="row">
+											<div class="col-lg-12">
+												<div class="account-card">
+													<div class="account-content">
+														<div class="table-scroll">
+															<table class="table-list">
+																<thead>
+																	<tr>
+																		<th scope="col">Mã Order</th>
+																		<th scope="col">Ngày đặt</th>
+																		<th scope="col">Tổng tiền</th>
+																		<th scope="col">Địa chỉ</th>
+																		<th scope="col">Số điện thoại</th>
+																		<th scope="col">Trạng thái</th>
+																		<th scope="col">Thanh Toán</th>
+																		<th scope="col">Hành động</th>
+																	</tr>
+																</thead>
+																<!--list đơn hàng-->
+																<tbody>
+																	<!-- Nội dung của tbody sẽ được JavaScript cập nhật -->
+																</tbody>
+															</table>
+															<!-- pagination  -->
+															<!-- ... -->
+
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</section>
+							</div>
+						</div>
+					</div>
+				</div>
+	</section>
+
+	<script>
+		document.addEventListener("DOMContentLoaded", function () {
+			const token = localStorage.getItem("token");
+			const ordersTableBody = document.querySelector("tbody");
+			const paginationContainer = document.getElementById('pagination');
+
+			if (!token) {
+				alert("Vui lòng đăng nhập.");
+				return;
+			}
+
+			// Hàm lấy userId từ token
+			fetch("http://localhost:9056/user-service/api/profile/infor", {
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${token}`
+				}
+			})
+				.then(response => {
+					if (!response.ok) throw new Error("Không thể lấy thông tin người dùng");
+					return response.json();
+				})
+				.then(data => {
+					const userId = data.userId;
+					loadOrders(userId, 0, 4); // Tải trang đầu tiên với size = 2					
+				})
+				.catch(error => console.error(error));
+
+			// Hàm tải danh sách đơn hàng
+			function loadOrders(userId, page, size) {
+				fetch(`http://localhost:9056/order-service/api/orders/user?userId=${userId}&page=${page}&size=${size}`, {
+					method: "GET",
+					headers: {
+						Authorization: `Bearer ${token}`
+					}
+				})
+					.then(response => {
+						if (!response.ok) throw new Error("Không thể tải danh sách đơn hàng");
+						return response.json();
+					})
+					.then(data => {
+						renderOrders(data.content);
+						renderPagination(data,userId);
+					})
+					.catch(error => console.error(error));
+			}
+			window.loadOrders = loadOrders;
+
+			// Hàm hiển thị danh sách đơn hàng vào bảng
+			function renderOrders(orders) {
+				ordersTableBody.innerHTML = ""; // Xóa nội dung cũ
+				orders.forEach(order => {
+					const row = `
+                <tr>
+                    <td class="table-serial"><h6>${order.orderId}</h6></td>
+                    <td class="table-name"><h6>${order.orderDate}</h6></td>
+                    <td class="table-price"><h6>${order.totalCost} đ</h6></td>
+                    <td class="table-address"><h6>${order.address}</h6></td>
+                    <td class="table-brand"><h6>${order.phone}</h6></td>
+                    <td class="table-status">
+                        ${getOrderStatus(order.status, order.orderId)}
+                    </td>
+                    <td class="table-status">
+                        ${order.isPayed ?
+							`<a style="color: #ffab10;"><i class="fa fa-check-circle"> Đã thanh toán</i></a>` :
+							`<a style="color: #0e76a8;"><i class="fa fa-check-circle"> Chưa thanh toán</i></a>`}
+                    </td>
+                    <td class="table-action">
+                        <a class="view" href="/templates/web/historyOrderDetail.html?orderId=${order.orderId}" title="Xem chi tiết">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        ${order.status === 0 ? `
+                        <a class="trash" href="javascript:void(0);" title="Hủy đơn hàng" data-id="${order.orderId}" onclick="showConfigCancelModalDialog(this.getAttribute('data-id'))">
+                            <i class="icofont-trash"></i>
+                        </a>` : `
+                        <a class="trash" href="javascript:void(0);"
+   							title="${order.status === 'PENDING' ? 'Hủy đơn hàng' : 'Không thể hủy đơn hàng này'}"
+   							style="${order.status === 'PENDING' ? '' : 'cursor: not-allowed; color: grey;'}"
+   							data-id="${order.orderId}"
+   							onclick="${order.status === 'PENDING' ? `showConfigCancelModalDialog(${order.orderId})` : ''}">
+    						<i class="icofont-trash"></i>
+						</a>`}
+                    </td>
+                </tr>`;
+					ordersTableBody.insertAdjacentHTML("beforeend", row);
+				});
+			}
+			window.renderOrders = renderOrders;
+
+			// Hàm hiển thị trạng thái đơn hàng
+			//...			
+
+			// Hàm cập nhật trạng thái đơn hàng
+			//...
+
+			// Hàm hiển thị phân trang
+			// ...
+		});
+
+		// Hủy đơn hàng
+		let selectedOrderId = null; // Biến lưu trữ orderId được chọn để hủy
+
+		// Hàm hiển thị modal xác nhận hủy đơn hàng
+		//...
+
+    // Hàm xử lý hủy đơn hàng khi nhấn "Có"
+		document.addEventListener("DOMContentLoaded", function () {
+			document.getElementById("yesOptionCanCel").addEventListener("click", function () {
+				//...
+			});
+		});
+	</script>
+
+	<style>
+		.confirm-btn {
+			display: inline-flex;
+			align-items: center;
+			padding: 8px 12px;
+			background-color: #f7a800;
+			/* Màu vàng nền */
+			color: white;
+			/* Màu chữ trắng */
+			font-size: 14px;
+			/* Kích cỡ chữ nhỏ hơn */
+			border-radius: 4px;
+			/* Bo góc */
+			text-decoration: none;
+			transition: background-color 0.3s, transform 0.2s ease-in-out;
+		}
+
+		.confirm-btn i {
+			margin-right: 5px;
+		}
+
+		.confirm-btn:hover {
+			background-color: #f59e00;
+			/* Màu nền khi hover (sáng hơn một chút) */
+			transform: scale(1.05);
+			/* Hiệu ứng phóng to nhẹ khi hover */
+		}
+
+		.confirm-btn:active {
+			background-color: #e69300;
+			/* Màu nền khi nhấn */
+		}
+	</style>
+
+	<!-- Huỷ đơn hàng 
+	<script>
+		function showConfigCancelModalDialog(id) {
+			$('#idCancel').text(id);
+			$('#yesOptionCanCel').attr('href', '/order/cancel/' + id);
+			$('#configmationCancelId').modal('show');
+		}
+	</script>-->
+
+	<!-- Modal -->
+	<!-- ... -->
+
+  <!-- News Part -->
+	<!-- ... -->
+
+  <!-- intro Part -->
+	<!-- ... -->
+
+	<!--************************************
+				Footer Start
+		*************************************-->
+	<header id="footer-placeholder"></header>
+	<script>
+		// Load nội dung từ header.html và chèn vào phần tử #header-placeholder
+		fetch('fragments/footer.html')
+			.then(response => response.text())
+			.then(data => {
+				document.getElementById('footer-placeholder').innerHTML = data;
+			})
+			.catch(error => console.error('Error loading header:', error));
+	</script>
+
+	<!--************************************
+				Footer End
+		*************************************-->
+
+	<script src="/static/vendor/bootstrap/jquery-1.12.4.min.js"></script>
+	<script src="/static/vendor/bootstrap/popper.min.js"></script>
+	<script src="/static/vendor/bootstrap/bootstrap.min.js"></script>
+	<script src="/static/vendor/countdown/countdown.min.js"></script>
+	<script src="/static/vendor/niceselect/nice-select.min.js"></script>
+	<script src="/static/vendor/slickslider/slick.min.js"></script>
+	<script src="/static/vendor/venobox/venobox.min.js"></script>
+	<script src="/static/js/nice-select.js"></script>
+	<script src="/static/js/countdown.js"></script>
+	<script src="/static/js/accordion.js"></script>
+	<script src="/static/js/venobox.js"></script>
+	<script src="/static/js/slick.js"></script>
+	<script src="/static/js/main.js"></script>
+</body>
+
+</html>
