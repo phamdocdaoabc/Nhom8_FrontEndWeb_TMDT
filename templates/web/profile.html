@@ -38,21 +38,72 @@
 		//..
 
 		// Hàm xử lý đóng / mở giỏ hàng
-		//...
+		function loadOpenCarItem() {
+      const cartIcon = document.getElementById('cartIcon'); // Biểu tượng giỏ hàng
+      const cartSidebar = document.getElementById('cartSidebar'); // Sidebar giỏ hàng
+      const closeCartSidebar = document.getElementById('closeCartSidebar'); // Nút đóng
+
+      // Mở giỏ hàng
+      cartIcon.addEventListener('click', function () {
+        cartSidebar.classList.add('active');
+      });
+
+      // Đóng giỏ hàng
+      closeCartSidebar.addEventListener('click', function () {
+        cartSidebar.classList.remove('active');
+      });
+
+      // Đóng khi click ra ngoài
+      document.addEventListener('click', function (event) {
+        if (!cartSidebar.contains(event.target) && !cartIcon.contains(event.target)) {
+          cartSidebar.classList.remove('active');
+        }
+      });
+    }
+
 
 		// Hiển thị chi tiết giỏ hàng
 		//...
 
 		// Định dạng tiền tệ
-		function formatCurrency(amount) {
-			return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-		}
 
 		// Tải chi tiết giỏ hàng khi tải trang
 		//...
 
 		// Hàm tải giỏ hàng từ API
-		//...
+		async function fetchCartDetails() {
+      try {
+        const token = localStorage.getItem('token');
+        const userInfoResponse = await fetch('http://localhost:9056/user-service/api/profile/infor', {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!userInfoResponse.ok) throw new Error('Không thể lấy thông tin người dùng.');
+
+        const userInfo = await userInfoResponse.json();
+        const userId = userInfo.userId;
+
+        const cartResponse = await fetch(`http://localhost:9056/order-service/api/cart/${userId}`, {
+          method: 'GET'
+        });
+
+        if (!cartResponse.ok) throw new Error('Không thể lấy thông tin giỏ hàng.');
+
+        const cartData = await cartResponse.json();
+        renderCartDetails(cartData);
+        let cartItemCount = cartData.totalItems;
+        document.getElementById("totalCartItems2").textContent = cartItemCount;
+        const cartItemTotal = document.getElementById("totalCartItems3");
+        cartItemTotal.textContent = `Tổng số lượng giỏ hàng: ${cartData.totalItems}`;
+      } catch (error) {
+        console.error('Lỗi khi tải giỏ hàng:', error);
+        document.getElementById('emptyCartMessage').innerHTML = `
+          <h4 style="color: #119744">Không thể tải thông tin giỏ hàng!</h4>
+          <h5 style="color: #119744">Vui lòng thử lại sau!</h5>
+        `;
+      }
+    }
 
 
 		// Đảm bảo hàm loadUserProfile được khai báo trước
