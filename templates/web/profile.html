@@ -666,15 +666,51 @@
       }	
 
 			// Hàm cập nhật trạng thái đơn hàng
-			//...
+			function updateOrderStatus(orderId, newStatus) {
+        fetch(`http://localhost:9056/order-service/api/orders/update/${orderId}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderStatus: newStatus }),
+        })
+          .then(response => {
+            if (response.ok) {
+              alert('Cập nhật trạng thái thành công!');
+              location.reload();
+            } else {
+              alert('Có lỗi xảy ra khi cập nhật trạng thái.');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra khi gọi API.');
+          });
+      }
+      // Để HTML có thể truy cập được
+      window.updateOrderStatus = updateOrderStatus;
+
 
 			// Hàm hiển thị phân trang
-			// ...
+			function renderPagination(data, userId) {
+        paginationContainer.innerHTML = ""; // Xóa nội dung cũ
+        console.log("userId: "+userId);
+
+        for (let i = 0; i < data.totalPages; i++) {
+          const pageLink = `
+						<li class="page-item ${i === data.number ? "active" : ""}">
+							<a href="#" class="page-link" onclick="loadOrders(${userId}, ${i}, ${data.size})">
+								${i + 1}
+							</a>
+            </li>`;
+          paginationContainer.insertAdjacentHTML("beforeend", pageLink);
+        }
+      }
 		});
+
 
 		// Hủy đơn hàng
 		let selectedOrderId = null; // Biến lưu trữ orderId được chọn để hủy
 
+		
 		// Hàm hiển thị modal xác nhận hủy đơn hàng
 		//...
 
