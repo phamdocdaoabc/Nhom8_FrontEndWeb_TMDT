@@ -537,8 +537,16 @@
 																</tbody>
 															</table>
 															<!-- pagination  -->
-															<!-- ... -->
-
+															<div class="row">
+                                <div class="col-lg-12">
+                                  <div class="bottom-paginate">
+                                    <p class="page-info"></p>
+                                    <div id="pagination" class="pagination">
+                                      <!--Phân trang-->
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
 														</div>
 													</div>
 												</div>
@@ -605,44 +613,57 @@
 				ordersTableBody.innerHTML = ""; // Xóa nội dung cũ
 				orders.forEach(order => {
 					const row = `
-                <tr>
-                    <td class="table-serial"><h6>${order.orderId}</h6></td>
-                    <td class="table-name"><h6>${order.orderDate}</h6></td>
-                    <td class="table-price"><h6>${order.totalCost} đ</h6></td>
-                    <td class="table-address"><h6>${order.address}</h6></td>
-                    <td class="table-brand"><h6>${order.phone}</h6></td>
-                    <td class="table-status">
-                        ${getOrderStatus(order.status, order.orderId)}
-                    </td>
-                    <td class="table-status">
-                        ${order.isPayed ?
-							`<a style="color: #ffab10;"><i class="fa fa-check-circle"> Đã thanh toán</i></a>` :
-							`<a style="color: #0e76a8;"><i class="fa fa-check-circle"> Chưa thanh toán</i></a>`}
-                    </td>
-                    <td class="table-action">
-                        <a class="view" href="/templates/web/historyOrderDetail.html?orderId=${order.orderId}" title="Xem chi tiết">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        ${order.status === 0 ? `
-                        <a class="trash" href="javascript:void(0);" title="Hủy đơn hàng" data-id="${order.orderId}" onclick="showConfigCancelModalDialog(this.getAttribute('data-id'))">
-                            <i class="icofont-trash"></i>
-                        </a>` : `
-                        <a class="trash" href="javascript:void(0);"
-   							title="${order.status === 'PENDING' ? 'Hủy đơn hàng' : 'Không thể hủy đơn hàng này'}"
-   							style="${order.status === 'PENDING' ? '' : 'cursor: not-allowed; color: grey;'}"
-   							data-id="${order.orderId}"
-   							onclick="${order.status === 'PENDING' ? `showConfigCancelModalDialog(${order.orderId})` : ''}">
-    						<i class="icofont-trash"></i>
-						</a>`}
-                    </td>
-                </tr>`;
+						<tr>
+							<td class="table-serial"><h6>${order.orderId}</h6></td>
+							<td class="table-name"><h6>${order.orderDate}</h6></td>
+							<td class="table-price"><h6>${order.totalCost} đ</h6></td>
+							<td class="table-address"><h6>${order.address}</h6></td>
+							<td class="table-brand"><h6>${order.phone}</h6></td>
+							<td class="table-status">
+								${getOrderStatus(order.status, order.orderId)}
+							</td>
+							<td class="table-status">
+								${order.isPayed ?
+								`<a style="color: #ffab10;"><i class="fa fa-check-circle"> Đã thanh toán</i></a>` :
+								`<a style="color: #0e76a8;"><i class="fa fa-check-circle"> Chưa thanh toán</i></a>`}
+							</td>
+							<td class="table-action">
+								<a class="view" href="/templates/web/historyOrderDetail.html?orderId=${order.orderId}" title="Xem chi tiết">
+									<i class="fas fa-eye"></i>
+								</a>
+								${order.status === 0 ? `
+								<a class="trash" href="javascript:void(0);" title="Hủy đơn hàng" data-id="${order.orderId}" onclick="showConfigCancelModalDialog(this.getAttribute('data-id'))">
+									<i class="icofont-trash"></i>
+								</a>` : `
+								<a class="trash" href="javascript:void(0);"
+									title="${order.status === 'PENDING' ? 'Hủy đơn hàng' : 'Không thể hủy đơn hàng này'}"
+									style="${order.status === 'PENDING' ? '' : 'cursor: not-allowed; color: grey;'}"
+									data-id="${order.orderId}"
+									onclick="${order.status === 'PENDING' ? `showConfigCancelModalDialog(${order.orderId})` : ''}">
+									<i class="icofont-trash"></i>
+								</a>`}
+							</td>
+						</tr>`;
 					ordersTableBody.insertAdjacentHTML("beforeend", row);
 				});
 			}
 			window.renderOrders = renderOrders;
 
 			// Hàm hiển thị trạng thái đơn hàng
-			//...			
+			function getOrderStatus(status, orderId) {
+        switch (status) {
+          case 'PENDING': return `<a style="color: #0e76a8;"><i class="fa fa-check-circle"> Chờ xử lý</i></a>`;
+          case 'CONFIRMED': return `<a style="color: #0e76a8;"><i class="fa fa-check-circle"> Đã xác nhận</i></a>`;
+          case 'SHIPPED': return `<a style="color: #ffab10;"><i class="fa fa-check-circle"> Đang giao hàng</i></a>`;
+          case 'CONFIRM_DELIVERED': return `
+						<a href="javascript:void(0);" class="confirm-btn" onclick="updateOrderStatus(${orderId}, 'DELIVERED')">
+							<i class="fa fa-check-circle"></i> Xác nhận đã nhận
+						</a>`;
+          case 'DELIVERED': return `<a style="color: #119744;"><i class="fa fa-check-circle"> Đã giao hàng</i></a>`;
+          case 'CANCELLED': return `<a style="color: #ff3838;"><i class="fa fa-check-circle"> Đã hủy</i></a>`;
+          default: return `<a style="color: #000;"><i class="fa fa-check-circle"> Không xác định</i></a>`;
+        }
+      }	
 
 			// Hàm cập nhật trạng thái đơn hàng
 			//...
