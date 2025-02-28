@@ -63,12 +63,38 @@
 
 
 		// Hiển thị chi tiết giỏ hàng
-		//...
+		function renderCartDetails(cart) {
+      const totalItems = cart.totalItems || 0;
+      const cartItems = cart.cartItems || [];
+      const cartList = document.getElementById('cartList');
+      const emptyCartMessage = document.getElementById('emptyCartMessage');
+      const cartFooter = document.getElementById('cartFooter');
+
+      if (totalItems === 0) {
+        emptyCartMessage.style.display = 'block';
+        cartList.innerHTML = '';
+        cartFooter.style.display = 'none';
+      } else {
+        emptyCartMessage.style.display = 'none';
+        cartList.innerHTML = cartItems.map(item => {
+					//...
+				}
+        )
+          .join('');
+        cartFooter.style.display = 'block';
+      }
+    }
+
 
 		// Định dạng tiền tệ
+		function formatCurrency(amount) {
+      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+    }
+
 
 		// Tải chi tiết giỏ hàng khi tải trang
-		//...
+		document.addEventListener('DOMContentLoaded', fetchCartDetails);
+
 
 		// Hàm tải giỏ hàng từ API
 		async function fetchCartDetails() {
