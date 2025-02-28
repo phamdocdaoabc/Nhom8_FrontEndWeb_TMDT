@@ -35,7 +35,57 @@
 	<header id="header-placeholder"></header>
 	<script>
 		// Hàm xóa sản phẩm khỏi giỏ hàng
-		//..
+		function removeItemFromCart(productId) {
+      const token = localStorage.getItem("token");
+
+      // Lấy userId từ API profile
+      fetch("http://localhost:9056/user-service/api/profile/infor", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then(response => response.json())
+        .then(userInfo => {
+          const userId = userInfo.userId; // Lấy userId từ response
+
+          // Sau khi có userId, gọi API xóa sản phẩm khỏi giỏ hàng
+          return fetch(`http://localhost:9056/order-service/api/cart/remove?userId=${userId}&productId=${productId}`, {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("Lỗi khi xóa sản phẩm.");
+          }
+
+          // Xóa sản phẩm khỏi giao diện
+          const productElement = document.querySelector(`#cart-item-${productId}`);
+          if (productElement) {
+            productElement.remove();
+          }
+
+          // Kiểm tra nếu giỏ hàng trống
+          const cartItems = document.querySelectorAll(".cart-item");
+          if (cartItems.length === 0) {
+            document.getElementById("emptyCartMessage").style.display = "block";
+            document.getElementById("cartFooter").style.display = "none";
+            document.getElementById("cartTotalItems").textContent = "Tổng số lượng giỏ hàng (0)";
+          } else {
+            // Cập nhật lại tổng số lượng giỏ hàng
+            const totalCartItems = parseInt(document.getElementById("totalCartItems3").textContent.match(/\d+/)) - 1;
+            document.getElementById("totalCartItems3").textContent = `Tổng số lượng giỏ hàng: ${totalCartItems}`;
+            document.getElementById("cartTotalItems").textContent = `Tổng số lượng giỏ hàng (${totalCartItems})`;
+          }
+        })
+        .catch(error => {
+          console.error("Lỗi khi xóa sản phẩm:", error);
+        });
+    }
+
 
 		// Hàm xử lý đóng / mở giỏ hàng
 		function loadOpenCarItem() {
@@ -67,18 +117,36 @@
       const totalItems = cart.totalItems || 0;
       const cartItems = cart.cartItems || [];
       const cartList = document.getElementById('cartList');
-      const emptyCartMessage = document.getElementById('emptyCartMessage');
-      const cartFooter = document.getElementById('cartFooter');
+      //...
 
       if (totalItems === 0) {
-        emptyCartMessage.style.display = 'block';
         cartList.innerHTML = '';
-        cartFooter.style.display = 'none';
+        //...
       } else {
         emptyCartMessage.style.display = 'none';
-        cartList.innerHTML = cartItems.map(item => {
-					//...
-				}
+        cartList.innerHTML = cartItems.map(item => `
+					<li class="cart-item" id="cart-item-${item.productId}">
+						<div class="cart-media">
+							<a href="/templates/web/productDetail.html?productId=${item.productId}">
+								<img src="${item.imageUrl}" alt="product" />
+							</a>
+						</div>
+						<div class="cart-info-group">
+							<div class="cart-info">
+								<h6><label>Tên sản phẩm :</label> <a href="/templates/web/productDetail.html?productId=${item.productId}" style="color: #119744">${item.productName}</a></h6>
+								<label>Đơn giá :</label>
+								<p>${formatCurrency(item.price - item.price * (item.discount / 100))} đ</p>
+							</div>
+							<div class="cart-action-group">
+								<div class="product-action">
+									<label>Số lượng : </label>
+									<input class="action-input" title="Quantity Number" type="number" min="1" value="${item.quantity}" style="font-weight: bold;"/>
+								</div>
+									<h6>${formatCurrency((item.price - item.price * (item.discount / 100)) * item.quantity)} đ</h6>
+									<button class="remove-item-btn" onclick="removeItemFromCart(${item.productId})">Xóa</button>
+							</div>
+						</div>
+					</li> `
         )
           .join('');
         cartFooter.style.display = 'block';
