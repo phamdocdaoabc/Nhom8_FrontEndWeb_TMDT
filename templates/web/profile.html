@@ -712,7 +712,14 @@
 
 		
 		// Hàm hiển thị modal xác nhận hủy đơn hàng
-		//...
+		function showConfigCancelModalDialog(orderId) {
+      selectedOrderId = orderId; // Lưu orderId để xử lý khi nhấn "Có"
+      console.log("selectedOrderId: " + selectedOrderId);
+      document.getElementById("idCancel").textContent = orderId; // Hiển thị mã đơn hàng trong modal
+      const modal = new bootstrap.Modal(document.getElementById("configmationCancelId"));
+      modal.show();
+    }
+
 
     // Hàm xử lý hủy đơn hàng khi nhấn "Có"
 		document.addEventListener("DOMContentLoaded", function () {
@@ -742,13 +749,7 @@
               console.error("Lỗi khi hủy đơn hàng:", error);
               //alert("Đã xảy ra lỗi khi hủy đơn hàng. Vui lòng thử lại!");
             })
-            .finally(() => {
-              selectedOrderId = null; // Đặt lại giá trị sau khi xử lý
-              yesButton.disabled = false; // Kích hoạt lại nút
-              yesButton.textContent = "Có"; // Khôi phục trạng thái nút
-              const modal = bootstrap.Modal.getInstance(document.getElementById("configmationCancelId"));
-              modal.hide(); // Ẩn modal sau khi xử lý xong
-            });
+            //...
         }
 			});
 		});
@@ -798,7 +799,28 @@
 	</script>-->
 
 	<!-- Modal -->
-	<!-- ... -->
+	<div class="modal" id="configmationCancelId">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <button class="modal-close" data-bs-dismiss="modal">
+          <i class="icofont-close"></i>
+        </button>
+        <div class="modal-form">
+          <h5 class="modal-title">Xác nhận</h5>
+          <div class="modal-body">
+            <p>
+              Bạn có muốn huỷ đơn hàng có mã " <span style="color: #119744" id="idCancel"></span> " không
+              ?
+            </p>
+          </div>
+          <div class="modal-footer">
+            <a id="yesOptionCanCel" type="button" class="btn btn-success">Có</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
 
   <!-- News Part -->
 	<!-- ... -->
