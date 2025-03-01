@@ -717,7 +717,39 @@
     // Hàm xử lý hủy đơn hàng khi nhấn "Có"
 		document.addEventListener("DOMContentLoaded", function () {
 			document.getElementById("yesOptionCanCel").addEventListener("click", function () {
-				//...
+				if (selectedOrderId) {
+          const yesButton = document.getElementById("yesOptionCanCel");
+          yesButton.disabled = true; // Vô hiệu hóa nút để tránh gọi API nhiều lần
+          yesButton.textContent = "Đang xử lý..."; // Thêm hiệu ứng
+
+          fetch(`http://localhost:9056/order-service/api/orders/cancel/${selectedOrderId}`, {
+            method: "PUT"
+          })
+            .then(response => {
+              if (!response.ok) throw new Error("Không thể hủy đơn hàng!");
+              return response.json();
+            })
+            .then(result => {
+              console.log("result: " + result);
+              if (result) {
+                //alert("Đơn hàng đã được hủy thành công!");                
+                window.location.reload();
+              } else {
+                alert("Không thể hủy đơn hàng này, trạng thái đơn hàng không phù hợp!");
+              }
+            })
+            .catch(error => {
+              console.error("Lỗi khi hủy đơn hàng:", error);
+              //alert("Đã xảy ra lỗi khi hủy đơn hàng. Vui lòng thử lại!");
+            })
+            .finally(() => {
+              selectedOrderId = null; // Đặt lại giá trị sau khi xử lý
+              yesButton.disabled = false; // Kích hoạt lại nút
+              yesButton.textContent = "Có"; // Khôi phục trạng thái nút
+              const modal = bootstrap.Modal.getInstance(document.getElementById("configmationCancelId"));
+              modal.hide(); // Ẩn modal sau khi xử lý xong
+            });
+        }
 			});
 		});
 	</script>
