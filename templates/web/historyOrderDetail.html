@@ -37,7 +37,28 @@
     //...
 
     // Hàm xử lý đóng mở giỏ hàng
-    //...
+    function loadOpenCarItem() {
+      const cartIcon = document.getElementById('cartIcon'); // Biểu tượng giỏ hàng
+      const cartSidebar = document.getElementById('cartSidebar'); // Sidebar giỏ hàng
+      const closeCartSidebar = document.getElementById('closeCartSidebar'); // Nút đóng
+
+      // Mở giỏ hàng
+      cartIcon.addEventListener('click', function () {
+        cartSidebar.classList.add('active');
+      });
+
+      // Đóng giỏ hàng
+      closeCartSidebar.addEventListener('click', function () {
+        cartSidebar.classList.remove('active');
+      });
+
+      // Đóng khi click ra ngoài
+      document.addEventListener('click', function (event) {
+        if (!cartSidebar.contains(event.target) && !cartIcon.contains(event.target)) {
+          cartSidebar.classList.remove('active');
+        }
+      });
+    }
 
     // Hàm hiển thị chi tiết giỏ hàng
     function renderCartDetails(cart) {
