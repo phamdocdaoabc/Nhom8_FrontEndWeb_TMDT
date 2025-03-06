@@ -40,13 +40,56 @@
     //...
 
     // Hàm hiển thị chi tiết giỏ hàng
-    //...
+    function renderCartDetails(cart) {
+      const totalItems = cart.totalItems || 0;
+      const cartItems = cart.cartItems || [];
+      const cartList = document.getElementById('cartList');
+      const emptyCartMessage = document.getElementById('emptyCartMessage');
+      const cartFooter = document.getElementById('cartFooter');
+
+      if (totalItems === 0) {
+        emptyCartMessage.style.display = 'block';
+        cartList.innerHTML = '';
+        cartFooter.style.display = 'none';
+      } else {
+        emptyCartMessage.style.display = 'none';
+        cartList.innerHTML = cartItems.map(item => `
+          <li class="cart-item" id="cart-item-${item.productId}">
+            <div class="cart-media">
+              <a href="/templates/web/productDetail.html?productId=${item.productId}">
+                <img src="${item.imageUrl}" alt="product" />
+              </a>
+            </div>
+            <div class="cart-info-group">
+                <div class="cart-info">
+                  <h6><label>Tên sản phẩm :</label> <a href="/templates/web/productDetail.html?productId=${item.productId}" style="color: #119744">${item.productName}</a></h6>
+                  <label>Đơn giá :</label>
+                  <p>${formatCurrency(item.price - item.price * (item.discount / 100))} đ</p>
+                </div>
+                <div class="cart-action-group">
+                  <div class="product-action">
+                    <label>Số lượng : </label>
+                    <input class="action-input" title="Quantity Number" type="number" min="1" value="${item.quantity}" style="font-weight: bold;"/>
+                  </div>
+                  <h6>${formatCurrency((item.price - item.price * (item.discount / 100)) * item.quantity)} đ</h6>
+                  <button class="remove-item-btn" onclick="removeItemFromCart(${item.productId})">Xóa</button>
+                </div>
+            </div>
+          </li>
+        `
+        )
+          .join('');
+        cartFooter.style.display = 'block';
+      }
+    }
 
     // Hàm định dạng tiền tệ
-    //...
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+    }
 
     // Tải chi tiết giỏ hàng khi tải trang
-    //...
+    document.addEventListener('DOMContentLoaded', fetchCartDetails);
 
     // Hàm load giỏ hàng từ API
     async function fetchCartDetails() {
