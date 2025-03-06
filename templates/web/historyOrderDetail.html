@@ -49,7 +49,40 @@
     //...
 
     // Hàm load giỏ hàng từ API
-    //...
+    async function fetchCartDetails() {
+      try {
+        const token = localStorage.getItem('token');
+        const userInfoResponse = await fetch('http://localhost:9056/user-service/api/profile/infor', {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!userInfoResponse.ok) throw new Error('Không thể lấy thông tin người dùng.');
+
+        const userInfo = await userInfoResponse.json();
+        const userId = userInfo.userId;
+
+        const cartResponse = await fetch(`http://localhost:9056/order-service/api/cart/${userId}`, {
+          method: 'GET'
+        });
+
+        if (!cartResponse.ok) throw new Error('Không thể lấy thông tin giỏ hàng.');
+
+        const cartData = await cartResponse.json();
+        renderCartDetails(cartData);
+        let cartItemCount = cartData.totalItems;
+        document.getElementById("totalCartItems2").textContent = cartItemCount;
+        const cartItemTotal = document.getElementById("totalCartItems3");
+        cartItemTotal.textContent = `Tổng số lượng giỏ hàng: ${cartData.totalItems}`;
+      } catch (error) {
+        console.error('Lỗi khi tải giỏ hàng:', error);
+        document.getElementById('emptyCartMessage').innerHTML = `
+          <h4 style="color: #119744">Không thể tải thông tin giỏ hàng!</h4>
+          <h5 style="color: #119744">Vui lòng thử lại sau!</h5>
+        `;
+      }
+    }
+
 
     // Hàm load dữ liệu profile người dùng
     // Đảm bảo hàm loadUserProfile được khai báo trước
